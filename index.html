@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogoForge — 標案級 Logo 交付平台</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <span class="ms">verified</span> LogoForge
+    <span class="sub">標案級 Logo 交付平台</span>
+  </div>
+  <nav class="steps" id="steps">
+    <span data-step="input" class="on">01 輸入</span>
+    <span data-step="grid">02 選稿</span>
+    <span data-step="editor">03 微調</span>
+    <span data-step="deliver">04 交付</span>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============ 01 輸入 ============ -->
+<section id="view-input" class="view show">
+  <div class="hero">
+    <h1>生成的不只是一張圖,<br>是<em>整包標案交付物</em>。</h1>
+    <p>向量母檔 · Pantone / CMYK 色彩定義 · VI 手冊 · 全情境應用展開 · 授權證明 —— 一鍵打包。</p>
+    <ul class="chips">
+      <li><span class="ms">polyline</span>原生向量,10 米噴繪不失真</li>
+      <li><span class="ms">font_download</span>文字真轉外框(非描邊)</li>
+      <li><span class="ms">palette</span>Pantone 對照 + CMYK</li>
+      <li><span class="ms">menu_book</span>40+ 頁 VI 手冊自動組版</li>
+      <li><span class="ms">gavel</span>OFL 授權 + 轉讓切結書</li>
+    </ul>
+  </div>
+
+  <div class="form-card">
+    <div class="segmented" id="modeTabs">
+      <button class="seg on" data-mode="gen"><span class="ms">auto_awesome</span>AI 生成</button>
+      <button class="seg" data-mode="upload"><span class="ms">upload</span>上傳現有 Logo</button>
+    </div>
+    <div class="frow">
+      <div class="field">
+        <label>中文名稱</label>
+        <input id="inNameZh" placeholder="例:鑫和工程" maxlength="12" value="">
+      </div>
+      <div class="field">
+        <label>英文名稱 <small>(選填)</small></label>
+        <input id="inNameEn" placeholder="e.g. SINHO Engineering" maxlength="28" value="">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="field">
+        <label>標語 <small>(選填)</small></label>
+        <input id="inTagline" placeholder="例:安全 · 準時 · 三十年" maxlength="20">
+      </div>
+      <div class="field">
+        <label>產業</label>
+        <select id="inIndustry"></select>
+      </div>
+    </div>
+    <div id="rowGen">
+      <div class="frow">
+        <div class="field">
+          <label>生成種子 <small>(同種子=同結果,可重現)</small></label>
+          <input id="inSeed" type="number" value="20260705">
+        </div>
+        <div class="field" style="display:flex;align-items:flex-end;">
+          <button class="btn primary big" id="btnGen" style="margin-top:0;">
+            <span class="ms spin">progress_activity</span>
+            <span class="ms">auto_awesome</span>生成 12 個候選
+          </button>
+        </div>
+      </div>
+      <p class="gen-note">
+        <span class="ms">info</span>
+        <span>生成引擎是「參數化向量」而非點陣生圖 —— 每條路徑天生閉合、文字直接以字型外框輸出。這是它能通過「10 米噴繪、幾何精修、全數轉外框」驗收的原因。</span>
+      </p>
+    </div>
+    <div id="rowUpload" style="display:none">
+      <div class="dropzone" id="dropzone">
+        <span class="ms">upload_file</span>
+        <b>拖放或點擊上傳你的 logo 圖檔</b>
+        <span>PNG / JPG / WebP / SVG · 建議 800px 以上 · 平面色塊型 logo 效果最佳</span>
+        <span class="dz-busy"><span class="ms spin" style="display:inline-block">progress_activity</span> 辨識中:色彩擷取 → 背景偵測 → 向量描邊⋯</span>
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg" hidden>
+      </div>
+      <p class="gen-note">
+        <span class="ms">frame_inspect</span>
+        <span>系統會自動擷取色彩、偵測背景、向量描邊,然後長出整套交付系統(全程本機,不上傳雲端)。描邊為「近似外框」—— 漸層與攝影式圖像不適用,交付文件會如實揭露。</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 選稿 ============ -->
+<section id="view-grid" class="view">
+  <div class="toolbar">
+    <button class="btn ghost" data-nav="input"><span class="ms">arrow_back</span>重新輸入</button>
+    <h2>挑一個當基底</h2>
+    <span class="meta" id="gridMeta"></span>
+    <div class="grow"></div>
+    <button class="btn" id="btnReroll"><span class="ms">refresh</span>換一批</button>
+  </div>
+  <div class="cards" id="grid"></div>
+</section>
+
+<!-- ============ 03 微調 ============ -->
+<section id="view-editor" class="view">
+  <div class="toolbar">
+    <button class="btn ghost" data-nav="grid"><span class="ms">arrow_back</span>回候選</button>
+    <h2>微調</h2>
+    <div class="grow"></div>
+    <button class="btn primary" id="btnDeliver"><span class="ms">package_2</span>一鍵產出標案交付包</button>
+  </div>
+
+  <div class="editor">
+    <aside class="panel">
+      <div id="genCtl">
+        <h3>版型</h3>
+        <div class="chiprow" id="ctlLayout"></div>
+        <h3>標誌家族</h3>
+        <div class="chiprow" id="ctlFamily"></div>
+        <h3>字紋(單字)</h3>
+        <div class="glyphrow">
+          <input id="ctlGlyph" maxlength="1">
+          <button class="btn" id="btnReseed" title="重擲標誌幾何"><span class="ms">casino</span>重擲</button>
+        </div>
+        <h3>配色</h3>
+        <div class="swatches" id="ctlPalette"></div>
+        <h3>中文字體</h3>
+        <div class="chiprow" id="ctlCjkFont"></div>
+        <h3>英文字體</h3>
+        <div class="chiprow" id="ctlLatinFont"></div>
+      </div>
+      <div id="uploadCtl" style="display:none">
+        <h3>描邊色數</h3>
+        <div class="chiprow" id="ctlColors"></div>
+        <h3>細節</h3>
+        <div class="chiprow" id="ctlDetail"></div>
+        <h3>背景</h3>
+        <div class="chiprow" id="ctlBgRemove"></div>
+        <h3>主色指定(自圖擷取)</h3>
+        <div class="chiprow" id="ctlSwatches"></div>
+      </div>
+      <h3>預覽背景</h3>
+      <div class="chiprow" id="ctlBg"></div>
+    </aside>
+
+    <div class="stage-wrap">
+      <div class="stage" id="stage"></div>
+      <div class="mode-strip" id="modeStrip"></div>
+    </div>
+
+    <aside class="panel">
+      <h3>色彩定義(即時)</h3>
+      <table class="spec-table" id="specTable"></table>
+      <p class="footnote" id="pmsNote">Pantone 為非官方最近色參考(CIEDE2000),正式印製前需以實體色票核對;CMYK 取 PMS 對照表建議值。</p>
+      <h3>此稿規格</h3>
+      <table class="spec-table" id="metaTable"></table>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ 04 交付 ============ -->
+<section id="view-deliver" class="view">
+  <div class="deliver-head">
+    <h2>標案交付包</h2>
+    <p id="deliverSub">正在從同一份向量母檔衍生所有資產⋯</p>
+  </div>
+  <ul class="prog" id="progList"></ul>
+  <div class="dcards" id="dcards" style="display:none;"></div>
+  <div class="deliver-cta" id="deliverCta" style="display:none;">
+    <button class="btn primary big" id="btnZip" style="max-width:340px;"><span class="ms">folder_zip</span>下載交付包 ZIP</button>
+    <button class="btn big" data-nav="manual" style="max-width:250px;"><span class="ms">menu_book</span>開啟 VI 手冊</button>
+    <button class="btn big" data-nav="gallery" style="max-width:250px;"><span class="ms">grid_view</span>應用展開 24 景</button>
+    <button class="btn big" data-nav="checklist" style="max-width:250px;"><span class="ms">checklist</span>驗收對照表</button>
+  </div>
+</section>
+
+<!-- ============ 應用展開 ============ -->
+<section id="view-gallery" class="view">
+  <div class="toolbar">
+    <button class="btn ghost" data-nav="deliver"><span class="ms">arrow_back</span>回交付</button>
+    <h2>全情境應用展開</h2>
+    <span class="meta" id="galleryMeta"></span>
+  </div>
+  <div class="gcards" id="gallery"></div>
+</section>
+
+<!-- ============ VI 手冊 ============ -->
+<section id="view-manual" class="view">
+  <div class="manual-toolbar">
+    <button class="btn ghost no-print" data-nav="deliver"><span class="ms">arrow_back</span>回交付</button>
+    <h2 class="no-print" style="font-size:20px;font-weight:650;">品牌視覺手冊</h2>
+    <span class="meta no-print" id="manualMeta"></span>
+    <div class="grow"></div>
+    <button class="btn primary no-print" id="btnPrint"><span class="ms">print</span>列印 / 另存 PDF(保向量)</button>
+  </div>
+  <div id="manualPages"></div>
+</section>
+
+<!-- ============ 驗收對照 ============ -->
+<section id="view-checklist" class="view">
+  <div class="toolbar">
+    <button class="btn ghost" data-nav="deliver"><span class="ms">arrow_back</span>回交付</button>
+    <h2>標案驗收對照表</h2>
+    <span class="meta">逐條對應「得獎後才是開始」那份需求</span>
+  </div>
+  <div id="checklist"></div>
+</section>
+
+</main>
+
+<footer>
+  LogoForge — 所有資產於本機瀏覽器生成,不經任何雲端。字體均為 SIL OFL 授權;Pantone 對照為社群參考值,正式印製以實體色票打樣為準。
+</footer>
+
+<script src="vendor/opentype.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/imagetracer.js"></script>
+<script src="js/color.js"></script>
+<script src="js/gen.js"></script>
+<script src="js/trace.js"></script>
+<script src="js/mockups.js"></script>
+<script src="js/vi.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
