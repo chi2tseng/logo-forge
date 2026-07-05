@@ -330,7 +330,7 @@
     }
 
     // ---- 17+ 應用展開(每景一頁)
-    const scenes = (typeof Mockups !== 'undefined' ? Mockups : require('./mockups.js')).SCENES;
+    const scenes = (typeof Mockups !== 'undefined' ? Mockups : require('./mockups.js')).scenesFor(ctx.industry);
     scenes.forEach(sc => {
       let inner;
       try { inner = sc.build(ctx); } catch (e) { inner = ''; }

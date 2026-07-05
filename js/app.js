@@ -61,14 +61,30 @@
       if (S.mode === 'upload') return S.up.lockup; // 上傳模式:四種版型皆同一份描邊母檔
       return cache[layout] || (cache[layout] = Gen.buildLockup(S.sel, layout));
     };
+    // 場景以「版型槽位」思考(橫式槽=矮寬、mark 槽=方形)。上傳 logo 長寬比不可控,
+    // 必須「盒內等比縮放」:寬 targetW、高上限 = targetW × 槽位比,永不溢出。
+    const SLOT_RATIO = { horizontal: 0.42, wordmark: 0.5, mark: 1.0, vertical: 1.5 };
+    function fitBox(layout, w) {
+      const lk = lock(layout);
+      const natural = lk.h * (w / lk.w);
+      if (S.mode !== 'upload') return { s: w / lk.w, dw: w, dh: natural }; // 生成模式版型本來就合槽
+      const capH = w * (SLOT_RATIO[layout] || 1);
+      const s = Math.min(w / lk.w, capH / lk.h);
+      return { s, dw: lk.w * s, dh: lk.h * s };
+    }
     return {
       p: pal,
       nameZh: S.sel.nameZh, nameEn: S.sel.nameEn, tagline: S.sel.tagline, industry: S.sel.industry,
       spec: S.sel, palette: pal,
       upload: S.mode === 'upload' ? { nodes: S.up.trace.nodes, colors: S.up.colors, detail: S.up.detail, removeBg: S.up.removeBg } : null,
       lockup: lock,
-      logo: (layout, mode, x, y, w) => Gen.lockupGroup(lock(layout), pal, mode, x, y, w).g,
-      logoH: (layout, w) => { const lk = lock(layout); return lk.h * (w / lk.w); }
+      logo: (layout, mode, x, y, w) => {
+        const f = fitBox(layout, w);
+        // mark/vertical 槽置中,橫式/字標槽靠左;垂直一律貼齊 y(場景用 logoH 算置中)
+        const dx = (layout === 'mark' || layout === 'vertical') ? (w - f.dw) / 2 : 0;
+        return Gen.lockupGroup(lock(layout), pal, mode, x + dx, y, f.dw).g;
+      },
+      logoH: (layout, w) => fitBox(layout, w).dh
     };
   }
   window.__lfCtx = makeCtx; // 除錯/驗證用
@@ -377,7 +393,7 @@
     const g = $('#gallery');
     g.innerHTML = '';
     let n = 0;
-    Mockups.SCENES.forEach(sc => {
+    Mockups.scenesFor(ctx.industry).forEach(sc => {
       try {
         const inner = sc.build(ctx);
         const card = document.createElement('div');
@@ -468,7 +484,8 @@
     if (target === 'upload' || target === 'updeliver') {
       const spec = S.specs[+(q.pick || 0)] || S.specs[0];
       const pal = ColorLib.PALETTES.find(p => p.id === spec.paletteId);
-      const svg = Gen.toSVG(Gen.buildLockup(spec, 'horizontal'), pal, 'full', { pad: 0.2, bg: '#FFFFFF' });
+      // 用「直式」樣本:高瘦長寬比才測得出盒內縮放(使用者上傳多是方形/直式)
+      const svg = Gen.toSVG(Gen.buildLockup(spec, q.src === 'h' ? 'horizontal' : 'vertical'), pal, 'full', { pad: 0.2, bg: '#FFFFFF' });
       const png = await svgToPngURL(svg, 900);
       await uploadFlow(png, 'demo_sample.png');
       if (target === 'updeliver') await deliver();

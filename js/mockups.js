@@ -323,7 +323,7 @@
         return s;
       } },
 
-    { id: 'vest', title: '工程反光背心', category: '制服配件', w: 900, h: 720,
+    { id: 'vest', title: '工程反光背心', category: '制服配件', w: 900, h: 720, only: ['工程營造', '環保能源', '物流運輸'],
       build(ctx) {
         const p = ctx.p;
         let s = H.board(900, 720);
@@ -343,7 +343,7 @@
         return s;
       } },
 
-    { id: 'helmet', title: '工程安全帽', category: '制服配件', w: 900, h: 620,
+    { id: 'helmet', title: '工程安全帽', category: '制服配件', w: 900, h: 620, only: ['工程營造', '環保能源'],
       build(ctx) {
         const p = ctx.p;
         let s = H.board(900, 620);
@@ -509,7 +509,7 @@
         return s;
       } },
 
-    { id: 'hoarding', title: '施工圍籬', category: '環境識別', w: 960, h: 540,
+    { id: 'hoarding', title: '施工圍籬', category: '環境識別', w: 960, h: 540, only: ['工程營造'],
       build(ctx) {
         const p = ctx.p;
         let s = H.board(960, 540);
@@ -590,5 +590,10 @@
 
   ];
 
-  return { SCENES, H };
+  // 依產業過濾:帶 only 標記的場景只給對口產業(精品工作室不需要安全帽)
+  function scenesFor(industry) {
+    return SCENES.filter(sc => !sc.only || sc.only.includes(industry));
+  }
+
+  return { SCENES, scenesFor, H };
 });

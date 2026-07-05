@@ -372,7 +372,7 @@ ${pages.map(pg => `<div class="page">${pg}</div>`).join('\n')}
     // 5. 應用展開
     prog.doing('展開');
     let mockupCount = 0;
-    for (const sc of Mockups.SCENES) {
+    for (const sc of Mockups.scenesFor(ctx.industry)) {
       try {
         const inner = sc.build(ctx);
         add(`04_應用展開/${sc.id}_${sc.title.replace(/[\\/:*?"<>|]/g, '')}.svg`,
