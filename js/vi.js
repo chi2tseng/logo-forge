@@ -293,8 +293,8 @@
           <table class="vi-kv">
             <tr><td>來源檔名</td><td><b>${esc(ctx.spec.uploadName || '—')}</b></td></tr>
             <tr><td>原始尺寸</td><td>${ctx.spec.uploadW} × ${ctx.spec.uploadH} px${Math.min(ctx.spec.uploadW, ctx.spec.uploadH) < 500 ? '(解析度偏低,描邊品質受限)' : ''}</td></tr>
-            <tr><td>描邊引擎</td><td>ImageTracer(公有領域 / Unlicense),本機執行</td></tr>
-            <tr><td>描邊參數</td><td>${d.colors || '—'} 色 · ${({ fine: '精細', standard: '標準', smooth: '平滑' })[d.detail] || '—'}${d.removeBg ? ' · 自動去背' : ''}</td></tr>
+            <tr><td>描邊引擎</td><td>ImageTracer(公有領域 / Unlicense),本機執行;類型辨識:${({ mono: '單色墨線 → 二值化高精度描邊', flat: '平面色塊 → 逐色遮罩描邊', complex: '複雜影像 → 量化描邊(降級)' })[d.kind] || '—'}</td></tr>
+            <tr><td>描邊參數</td><td>${d.colors === 'auto' ? '色數自動辨識' : (d.colors || '—') + ' 色'} · ${({ fine: '精細', standard: '標準', smooth: '平滑' })[d.detail] || '—'}${d.removeBg ? ' · 自動去背' : ''} · 面積去斑 ${d.speckles || 0} 處</td></tr>
             <tr><td>路徑節點</td><td>${d.nodes || '—'} 個指令;輪廓一律閉合,負空間 even-odd 鏤空</td></tr>
             <tr><td>品質聲明</td><td>描邊為「近似外框」,非原始幾何重建;大型輸出(10 米級)前建議以向量軟體人工精修節點。</td></tr>
           </table>`);

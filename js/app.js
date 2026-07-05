@@ -76,7 +76,7 @@
       p: pal,
       nameZh: S.sel.nameZh, nameEn: S.sel.nameEn, tagline: S.sel.tagline, industry: S.sel.industry,
       spec: S.sel, palette: pal,
-      upload: S.mode === 'upload' ? { nodes: S.up.trace.nodes, colors: S.up.colors, detail: S.up.detail, removeBg: S.up.removeBg } : null,
+      upload: S.mode === 'upload' ? { nodes: S.up.trace.nodes, colors: S.up.colors, detail: S.up.detail, removeBg: S.up.removeBg, kind: S.up.trace.kind, speckles: S.up.trace.speckles || 0 } : null,
       lockup: lock,
       logo: (layout, mode, x, y, w) => {
         const f = fitBox(layout, w);
@@ -130,7 +130,7 @@
       setMode('upload');
       S.up = {
         img, bg, swatches,
-        colors: Math.min(8, Math.max(2, swatches.length + 1)),
+        colors: 'auto', // 交給類型辨識(單色/平色/複雜)
         detail: 'standard', removeBg: true,
         primaryHex: Trace.suggestPrimary(swatches)
       };
@@ -155,7 +155,10 @@
   }
   function retrace() {
     const u = S.up;
-    u.trace = Trace.traceToLayers(u.img.imageData, { colors: u.colors, detail: u.detail, removeBg: u.removeBg, bg: u.bg });
+    u.trace = Trace.traceSmart(u.img.imageData, {
+      colorsOverride: u.colors === 'auto' ? null : +u.colors,
+      detail: u.detail, removeBg: u.removeBg, bg: u.bg
+    });
     u.lockup = Trace.toLockup(u.trace);
     u.palette = Trace.buildPalette(u.primaryHex);
   }
@@ -253,8 +256,8 @@
   function renderUploadControls() {
     const u = S.up;
     const rebuild = () => { retrace(); renderControls(); renderStage(); };
-    chipRow($('#ctlColors'), [2, 3, 4, 5, 6, 8].map(n => [String(n), n + ' 色']), String(u.colors),
-      v => { u.colors = +v; rebuild(); });
+    chipRow($('#ctlColors'), [['auto', '自動辨識'], ...[1, 2, 3, 4, 6].map(n => [String(n), n + ' 色'])], String(u.colors),
+      v => { u.colors = v; rebuild(); });
     chipRow($('#ctlDetail'), [['fine', '精細'], ['standard', '標準'], ['smooth', '平滑']], u.detail,
       v => { u.detail = v; rebuild(); });
     chipRow($('#ctlBgRemove'), [['on', '自動去背'], ['off', '保留背景']], u.removeBg ? 'on' : 'off',
@@ -302,12 +305,14 @@
       ['白底對比', `<b>${ColorLib.contrast(pal.primary, '#FFFFFF').toFixed(2)} : 1</b>${ColorLib.contrast(pal.primary, '#FFFFFF') >= 4.5 ? '(AA ✓)' : ''}`]
     ];
     $('#specTable').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+    const KIND_ZH = { mono: '單色墨線(二值化高精度)', flat: '平面色塊(逐色遮罩)', complex: '複雜影像(量化降級)' };
     const metaRows = S.mode === 'upload' ? [
+      ['辨識結果', (KIND_ZH[S.up.trace.kind] || '—') + (S.up.trace.kind === 'flat' ? ` × ${S.up.trace.layers.length} 色` : '')],
       ['來源檔案', S.sel.uploadName],
       ['原始尺寸', `${S.sel.uploadW}×${S.sel.uploadH}` + (Math.min(S.sel.uploadW, S.sel.uploadH) < 500 ? ' ⚠ 偏低' : '')],
-      ['描邊參數', `${S.up.colors} 色 · ${({ fine: '精細', standard: '標準', smooth: '平滑' })[S.up.detail]}${S.up.removeBg ? ' · 去背' : ''}`],
-      ['節點數', S.up.trace.nodes],
-      ['路徑', '閉合近似外框 · even-odd']
+      ['描邊參數', `${S.up.colors === 'auto' ? '自動' : S.up.colors + ' 色'} · ${({ fine: '精細', standard: '標準', smooth: '平滑' })[S.up.detail]}${S.up.removeBg ? ' · 去背' : ''}`],
+      ['節點 / 去斑', `${S.up.trace.nodes} 指令 · 清除 ${S.up.trace.speckles || 0} 個碎屑`],
+      ['路徑', '閉合外框 · even-odd 鏤空']
     ] : [
       ['家族', FAMILY_ZH[S.sel.family]],
       ['字紋', S.sel.glyphChar],
